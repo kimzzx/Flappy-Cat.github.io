@@ -1,5 +1,120 @@
+<!doctype html>
+<html lang="th" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flappy Cat 🐱🍎</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { box-sizing: border-box; }
+    * { font-family: 'Kanit', sans-serif; }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes sparkle {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.2); }
+    }
+    .cat-float { animation: float 1.5s ease-in-out infinite; }
+    .fruit-sparkle { animation: sparkle 0.8s ease-in-out infinite; }
+
+    .game-bg-playing {
+      background-image: url('https://drive.google.com/thumbnail?id=190VZ-Nrg10S9mr46wLxKC4Dd-EUuqFcD&sz=s800');
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
+</head>
+
+<body class="h-full m-0 p-0 overflow-hidden">
+<div id="app" class="w-full h-full relative">
+
+<!-- START SCREEN -->
+<div id="startScreen" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-pink-200 via-pink-100 to-rose-100">
+  <div class="text-center">
+    <div class="text-8xl mb-4 cat-float">🐱</div>
+    <h1 id="gameTitle" class="text-5xl font-bold text-pink-600 mb-2 drop-shadow-lg">Flappy Cat</h1>
+    <p class="text-xl text-pink-500 mb-8">🍎🍊🍋 เก็บผลไม้ให้ได้มากที่สุด! 🍇🍓🍑</p>
+
+    <div class="bg-white/70 rounded-3xl p-6 mx-4 mb-8 shadow-xl border-4 border-pink-300">
+      <h2 class="text-2xl font-bold text-pink-600 mb-4">🎮 วิธีเล่น</h2>
+      <div class="text-left text-pink-700 space-y-2">
+        <p>🐾 แตะหน้าจอเพื่อให้แมวบินขึ้น</p>
+        <p>✅ เก็บผลไม้ที่ตรงกับเป้าหมาย = ได้คะแนน</p>
+        <p>❌ เก็บผิดประเภท = เสียหัวใจ</p>
+        <p>💔 หัวใจหมด 3 ดวง = เกมโอเวอร์</p>
+      </div>
+    </div>
+
+    <div id="highScoreSection" class="hidden bg-yellow-100/80 rounded-2xl px-6 py-3 mb-6 shadow-lg border-4 border-yellow-400">
+      <p class="text-yellow-700 font-bold text-lg">
+        🏆 คะแนนสูงสุด: <span id="mainHighScore" class="text-3xl text-yellow-600">0</span>
+      </p>
+    </div>
+
+    <button id="startBtn"
+      class="bg-gradient-to-r from-pink-500 to-rose-500 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-2xl border-4 border-white">
+      🎮 เริ่มเกม!
+    </button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="hidden w-full h-full relative game-bg-playing">
+  <div class="absolute inset-0 bg-black/20"></div>
+
+  <div class="absolute top-4 left-4 right-4 flex justify-between z-20">
+    <div class="bg-white/90 rounded-2xl px-6 py-3 border-4 border-pink-400">
+      คะแนน: <span id="score" class="text-3xl font-bold">0</span>
+    </div>
+
+    <div class="bg-white/90 rounded-2xl px-6 py-3 border-4 border-yellow-400">
+      เก็บ: <span id="targetFruit" class="text-4xl">🍎</span>
+    </div>
+
+    <div class="bg-white/90 rounded-2xl px-6 py-3 border-4 border-red-400">
+      <span id="lives" class="text-3xl">❤️❤️❤️</span>
+    </div>
+  </div>
+
+  <div id="gameArea" class="w-full h-full relative z-10">
+    <div id="cat" class="absolute text-6xl" style="left:15%;top:50%">🐱</div>
+    <div id="fruitsContainer" class="absolute inset-0"></div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameOverScreen" class="hidden w-full h-full flex items-center justify-center bg-gradient-to-b from-purple-200 via-pink-200 to-rose-200">
+  <div class="text-center">
+    <div class="text-7xl mb-4">😿</div>
+    <h2 class="text-5xl font-bold text-pink-600 mb-4">เกมโอเวอร์!</h2>
+
+    <div class="bg-white/80 rounded-3xl p-8 mb-8 border-4 border-pink-300">
+      <p class="text-2xl mb-2">คะแนนของคุณ</p>
+      <p id="finalScore" class="text-6xl font-bold">0</p>
+      <p>🏆 คะแนนสูงสุด: <span id="highScore">0</span></p>
+    </div>
+
+    <button id="restartBtn"
+      class="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-bold py-4 px-12 rounded-full border-4 border-white">
+      🔄 เล่นอีกครั้ง
+    </button>
+  </div>
+</div>
+
+</div>
+
 <script>
-/* ===== FIXED GAME SCRIPT (NO UI CHANGE) ===== */
+const FRUITS = ['🍎','🍊','🍋','🍇','🍓','🍑','🥝','🍒'];
+const GRAVITY = 0.4;
+const JUMP_FORCE = -8;
+const FRUIT_SPEED = 3;
 
 let gameState = {
   isPlaying:false,
@@ -8,83 +123,63 @@ let gameState = {
   catY:50,
   catVelocity:0,
   fruits:[],
-  targetFruit:null,
-  loop:null,
-  spawn:null
+  targetFruit:null
 };
 
-const FRUITS = ['🍎','🍊','🍋','🍇','🍓','🍑','🥝','🍒'];
-const GRAVITY = 0.4;
-const JUMP = -8;
-const SPEED = 0.9;
-
-/* DOM */
 const startScreen = document.getElementById('startScreen');
 const gameScreen = document.getElementById('gameScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
 const cat = document.getElementById('cat');
+const scoreDisplay = document.getElementById('score');
+const livesDisplay = document.getElementById('lives');
+const targetFruitDisplay = document.getElementById('targetFruit');
 const fruitsContainer = document.getElementById('fruitsContainer');
-const scoreEl = document.getElementById('score');
-const livesEl = document.getElementById('lives');
-const targetFruitEl = document.getElementById('targetFruit');
-const finalScoreEl = document.getElementById('finalScore');
+const finalScoreDisplay = document.getElementById('finalScore');
+const highScoreDisplay = document.getElementById('highScore');
 
-/* START */
 function startGame(){
-  gameState = {
-    isPlaying:true,
-    score:0,
-    lives:3,
-    catY:50,
-    catVelocity:0,
-    fruits:[],
-    targetFruit:FRUITS[Math.floor(Math.random()*FRUITS.length)]
-  };
-
-  scoreEl.textContent = 0;
-  livesEl.textContent = '❤️❤️❤️';
-  targetFruitEl.textContent = gameState.targetFruit;
-  fruitsContainer.innerHTML = '';
-
+  gameState = {...gameState,isPlaying:true,score:0,lives:3,catY:50,catVelocity:0,fruits:[]};
+  selectNewTargetFruit();
+  updateDisplay();
+  fruitsContainer.innerHTML='';
   startScreen.classList.add('hidden');
   gameOverScreen.classList.add('hidden');
   gameScreen.classList.remove('hidden');
-
-  gameState.loop = requestAnimationFrame(loop);
-  gameState.spawn = setInterval(spawnFruit,1200);
+  requestAnimationFrame(gameLoop);
+  setInterval(spawnFruit,1200);
 }
 
-/* FRUIT */
+function selectNewTargetFruit(){
+  gameState.targetFruit = FRUITS[Math.floor(Math.random()*FRUITS.length)];
+  targetFruitDisplay.textContent = gameState.targetFruit;
+}
+
 function spawnFruit(){
   if(!gameState.isPlaying) return;
-
   const fruit = {
-    id: Date.now()+Math.random(),
-    emoji: FRUITS[Math.floor(Math.random()*FRUITS.length)],
+    emoji:FRUITS[Math.floor(Math.random()*FRUITS.length)],
     x:100,
-    y:10+Math.random()*70
+    y:10+Math.random()*70,
+    id:Date.now()+Math.random()
   };
-
   gameState.fruits.push(fruit);
 
   const el = document.createElement('div');
   el.id = `fruit-${fruit.id}`;
-  el.className = 'absolute text-5xl fruit-sparkle';
-  el.textContent = fruit.emoji;
-  el.style.left = `${fruit.x}%`;
-  el.style.top = `${fruit.y}%`;
+  el.className='absolute text-5xl fruit-sparkle';
+  el.textContent=fruit.emoji;
+  el.style.left=`${fruit.x}%`;
+  el.style.top=`${fruit.y}%`;
   fruitsContainer.appendChild(el);
 }
 
-/* INPUT */
 function jump(){
-  if(gameState.isPlaying) gameState.catVelocity = JUMP;
+  if(gameState.isPlaying) gameState.catVelocity = JUMP_FORCE;
 }
 
-/* LOOP */
-function loop(){
+function gameLoop(){
   if(!gameState.isPlaying) return;
 
   gameState.catVelocity += GRAVITY;
@@ -94,56 +189,46 @@ function loop(){
   cat.style.top = `${gameState.catY}%`;
   cat.style.transform = `rotate(${gameState.catVelocity*3}deg)`;
 
-  gameState.fruits.forEach((f,i)=>{
-    f.x -= SPEED;
-    const el = document.getElementById(`fruit-${f.id}`);
-    if(!el) return;
+  gameState.fruits.forEach((fruit,i)=>{
+    fruit.x -= FRUIT_SPEED*0.3;
+    const el = document.getElementById(`fruit-${fruit.id}`);
+    if(el) el.style.left=`${fruit.x}%`;
 
-    el.style.left = `${f.x}%`;
-
-    const hit = Math.abs(f.x-15)<7 && Math.abs(f.y-gameState.catY)<9;
-    if(hit){
-      if(f.emoji===gameState.targetFruit){
-        gameState.score += 10;
-        gameState.targetFruit = FRUITS[Math.floor(Math.random()*FRUITS.length)];
-        targetFruitEl.textContent = gameState.targetFruit;
+    if(Math.abs(fruit.x-15)<8 && Math.abs(fruit.y-gameState.catY)<10){
+      if(fruit.emoji===gameState.targetFruit){
+        gameState.score+=10;
+        selectNewTargetFruit();
       }else{
         gameState.lives--;
-        livesEl.textContent = '❤️'.repeat(gameState.lives);
       }
-
-      scoreEl.textContent = gameState.score;
       el.remove();
       gameState.fruits.splice(i,1);
-
-      if(gameState.lives<=0) return endGame();
-    }
-
-    if(f.x<-10){
-      el.remove();
-      gameState.fruits.splice(i,1);
+      updateDisplay();
+      if(gameState.lives<=0) endGame();
     }
   });
 
-  gameState.loop = requestAnimationFrame(loop);
+  requestAnimationFrame(gameLoop);
 }
 
-/* END */
+function updateDisplay(){
+  scoreDisplay.textContent=gameState.score;
+  livesDisplay.textContent='❤️'.repeat(gameState.lives)+'🖤'.repeat(3-gameState.lives);
+}
+
 function endGame(){
   gameState.isPlaying=false;
-  clearInterval(gameState.spawn);
-  cancelAnimationFrame(gameState.loop);
-
-  finalScoreEl.textContent = gameState.score;
+  finalScoreDisplay.textContent=gameState.score;
+  highScoreDisplay.textContent=gameState.score;
   gameScreen.classList.add('hidden');
   gameOverScreen.classList.remove('hidden');
 }
 
-/* EVENTS */
-startBtn.onclick = startGame;
-restartBtn.onclick = startGame;
-gameScreen.onclick = jump;
-document.addEventListener('keydown',e=>{
-  if(e.code==='Space' || e.code==='ArrowUp') jump();
-});
+startBtn.onclick=startGame;
+restartBtn.onclick=startGame;
+gameScreen.onclick=jump;
+document.onkeydown=e=>{if(e.code==='Space'||e.code==='ArrowUp')jump();}
 </script>
+
+</body>
+</html>
