@@ -30,10 +30,30 @@
       background-size: cover;
       background-position: center;
     }
+    #musicToggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+    }
+    #musicToggle:hover {
+      transform: scale(1.1);
+    }
   </style>
   <style>@view-transition { navigation: auto; }</style>
  </head>
- <body class="h-full m-0 p-0 overflow-hidden">
+ <body class="h-full m-0 p-0 overflow-hidden"><!-- Background Music -->
+  <audio id="bgMusic" loop><source src="https://od.lk/s/NzlfNjA3NDUwMzlf/Fast-Paced%20Cat%20Caf%C3%A9.mp3" type="audio/mpeg">
+  </audio><!-- Music Toggle Button --> <button id="musicToggle" title="Toggle music">🔊</button>
   <div id="app" class="w-full h-full relative"><!-- Start Screen -->
    <div id="startScreen" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-pink-200 via-pink-100 to-rose-100">
     <div class="text-center"><!-- Cute Cat Logo -->
@@ -67,6 +87,22 @@
     <div class="absolute bottom-20 right-12 text-4xl fruit-sparkle" style="animation-delay: 0.6s;">
      🍇
     </div>
+   </div><!-- Name Input Screen -->
+   <div id="nameScreen" class="w-full h-full hidden flex flex-col items-center justify-center bg-gradient-to-b from-blue-200 via-cyan-100 to-teal-100">
+    <div class="text-center px-4">
+     <div class="text-8xl mb-6 cat-float">
+      🐱
+     </div>
+     <h1 class="text-4xl font-bold text-blue-600 mb-8 drop-shadow-lg">กรุณาใส่ชื่อของคุณ!</h1>
+     <div class="bg-white/85 backdrop-blur-sm rounded-3xl p-8 shadow-xl border-4 border-blue-300 max-w-sm w-full mx-auto"><input type="text" id="playerNameInput" placeholder="ชื่อของคุณ" class="w-full px-6 py-4 text-2xl border-4 border-blue-400 rounded-2xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-300 mb-6" maxlength="20" autocomplete="off"> <button id="startGameBtn" class="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-2xl font-bold py-4 px-8 rounded-full shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-white"> 🎮 เล่นเกม! </button>
+     </div>
+    </div><!-- Decorative Elements -->
+    <div class="absolute top-10 left-10 text-4xl fruit-sparkle">
+     🍎
+    </div>
+    <div class="absolute bottom-20 right-12 text-4xl fruit-sparkle" style="animation-delay: 0.6s;">
+     🍇
+    </div>
    </div><!-- Game Screen -->
    <div id="gameScreen" class="w-full h-full hidden relative game-bg-playing"><!-- Game Overlay for better visibility -->
     <div class="absolute inset-0 bg-black/20"></div><!-- HUD -->
@@ -85,20 +121,29 @@
      <div id="fruitsContainer" class="w-full h-full absolute top-0 left-0"></div>
     </div>
    </div><!-- Game Over Screen -->
-   <div id="gameOverScreen" class="w-full h-full hidden flex flex-col items-center justify-center bg-gradient-to-b from-purple-200 via-pink-200 to-rose-200">
-    <div class="text-center">
-     <div class="text-7xl mb-4">
-      😿
-     </div>
-     <h2 class="text-5xl font-bold text-pink-600 mb-4">เกมโอเวอร์!</h2>
-     <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 mx-4 mb-8 shadow-xl border-4 border-pink-300">
-      <p class="text-2xl text-pink-600 mb-2">คะแนนของคุณ</p>
-      <p id="finalScore" class="text-6xl font-bold text-pink-700 mb-4">0</p>
-      <p id="highScoreDisplay" class="text-xl text-purple-600">🏆 คะแนนสูงสุด: <span id="highScore">0</span></p>
-     </div><!-- Saving Indicator -->
-     <div id="savingIndicator" class="bg-blue-100/80 rounded-2xl px-6 py-3 mb-6 shadow-lg border-4 border-blue-400 hidden">
-      <p class="text-blue-700 font-bold text-lg">💾 กำลังบันทึก...</p>
-     </div><button id="restartBtn" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-2xl transform hover:scale-110 transition-all duration-300 border-4 border-white"> 🔄 เล่นอีกครั้ง </button>
+   <div id="gameOverScreen" class="w-full h-full hidden flex flex-col items-center justify-start overflow-y-auto bg-gradient-to-b from-purple-200 via-pink-200 to-rose-200 pt-8">
+    <div class="w-full px-4 flex flex-col items-center">
+     <div class="text-center mb-6">
+      <div class="text-7xl mb-4">
+       😿
+      </div>
+      <h2 class="text-5xl font-bold text-pink-600 mb-4">เกมโอเวอร์!</h2>
+      <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 mx-4 mb-8 shadow-xl border-4 border-pink-300">
+       <p class="text-2xl text-pink-600 mb-2">ชื่อ: <span id="playerNameDisplay" class="text-pink-700 font-bold">ผู้เล่น</span></p>
+       <p class="text-2xl text-pink-600 mb-2">คะแนนของคุณ</p>
+       <p id="finalScore" class="text-6xl font-bold text-pink-700 mb-4">0</p>
+       <p id="highScoreDisplay" class="text-xl text-purple-600">🏆 คะแนนสูงสุด: <span id="highScore">0</span></p>
+      </div><!-- Saving Indicator -->
+      <div id="savingIndicator" class="bg-blue-100/80 rounded-2xl px-6 py-3 mb-6 shadow-lg border-4 border-blue-400 hidden">
+       <p class="text-blue-700 font-bold text-lg">💾 กำลังบันทึก...</p>
+      </div>
+     </div><!-- Leaderboard -->
+     <div class="bg-white/85 backdrop-blur-sm rounded-3xl p-6 mx-4 mb-8 shadow-xl border-4 border-purple-400 max-w-md w-full">
+      <h3 class="text-2xl font-bold text-purple-600 mb-4 text-center">🏆 จัดอันดับคะแนน</h3>
+      <div id="leaderboardContainer" class="space-y-2 max-h-64 overflow-y-auto">
+       <p class="text-center text-purple-500">กำลังโหลดข้อมูล...</p>
+      </div>
+     </div><button id="restartBtn" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-2xl transform hover:scale-110 transition-all duration-300 border-4 border-white mb-8"> 🔄 เล่นอีกครั้ง </button>
     </div>
    </div>
   </div>
@@ -125,7 +170,8 @@
       targetFruit: null,
       highScore: 0,
       gameLoop: null,
-      fruitSpawnTimer: null
+      fruitSpawnTimer: null,
+      playerName: ''
     };
     
     const FRUITS = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🥝', '🍒'];
@@ -135,10 +181,14 @@
     
     // DOM Elements
     const startScreen = document.getElementById('startScreen');
+    const nameScreen = document.getElementById('nameScreen');
     const gameScreen = document.getElementById('gameScreen');
     const gameOverScreen = document.getElementById('gameOverScreen');
     const startBtn = document.getElementById('startBtn');
+    const startGameBtn = document.getElementById('startGameBtn');
     const restartBtn = document.getElementById('restartBtn');
+    const playerNameInput = document.getElementById('playerNameInput');
+    const playerNameDisplay = document.getElementById('playerNameDisplay');
     const cat = document.getElementById('cat');
     const scoreDisplay = document.getElementById('score');
     const livesDisplay = document.getElementById('lives');
@@ -150,18 +200,39 @@
     const fruitsContainer = document.getElementById('fruitsContainer');
     const gameTitle = document.getElementById('gameTitle');
     const savingIndicator = document.getElementById('savingIndicator');
+    const leaderboardContainer = document.getElementById('leaderboardContainer');
+    const bgMusic = document.getElementById('bgMusic');
+    const musicToggle = document.getElementById('musicToggle');
+    
+    let allGameRecords = [];
+    let isMusicPlaying = false;
+    
+    // Music Toggle
+    musicToggle.addEventListener('click', () => {
+      if (isMusicPlaying) {
+        bgMusic.pause();
+        musicToggle.textContent = '🔇';
+        isMusicPlaying = false;
+      } else {
+        bgMusic.play();
+        musicToggle.textContent = '🔊';
+        isMusicPlaying = true;
+      }
+    });
     
     // Data Handler
     const dataHandler = {
       onDataChanged(data) {
         // Load high score from database
         if (data && data.length > 0) {
+          allGameRecords = data;
           const highestRecord = data.reduce((max, record) => {
             return parseInt(record.high_score) > parseInt(max.high_score) ? record : max;
           });
           gameState.highScore = parseInt(highestRecord.high_score);
           mainHighScore.textContent = gameState.highScore;
           highScoreSection.classList.remove('hidden');
+          updateLeaderboard();
         }
       }
     };
@@ -203,8 +274,50 @@
       startBtn.textContent = config.start_button_text || defaultConfig.start_button_text;
     }
     
+    function updateLeaderboard() {
+      // Sort all records by high score (highest first)
+      const sortedRecords = [...allGameRecords].sort((a, b) => {
+        return parseInt(b.high_score) - parseInt(a.high_score);
+      }).slice(0, 10); // Top 10
+      
+      leaderboardContainer.innerHTML = '';
+      
+      if (sortedRecords.length === 0) {
+        leaderboardContainer.innerHTML = '<p class="text-center text-purple-500">ยังไม่มีคะแนน</p>';
+        return;
+      }
+      
+      sortedRecords.forEach((record, index) => {
+        const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : #${index + 1};
+        const recordEl = document.createElement('div');
+        recordEl.className = 'bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-3 shadow-md border-2 border-purple-300 flex justify-between items-center gap-2';
+        recordEl.innerHTML = `
+          <span class="text-xl font-bold text-purple-600">${rankEmoji}</span>
+          <span class="text-lg font-bold text-purple-700 flex-1">${record.player_name}</span>
+          <span class="text-lg font-bold text-purple-700">${record.high_score}</span>
+          <span class="text-xs text-purple-500">${new Date(record.played_at).toLocaleDateString('th-TH')}</span>
+        `;
+        leaderboardContainer.appendChild(recordEl);
+      });
+    }
+    
     // Game Functions
+    function goToNameScreen() {
+      startScreen.classList.add('hidden');
+      nameScreen.classList.remove('hidden');
+      playerNameInput.focus();
+    }
+    
     function startGame() {
+      const playerName = playerNameInput.value.trim();
+      
+      if (!playerName) {
+        alert('กรุณาใส่ชื่อของคุณ!');
+        return;
+      }
+      
+      gameState.playerName = playerName;
+      
       gameState = {
         ...gameState,
         isPlaying: true,
@@ -215,11 +328,18 @@
         fruits: []
       };
       
+      // Start music when game starts
+      if (!isMusicPlaying) {
+        bgMusic.play();
+        musicToggle.textContent = '🔊';
+        isMusicPlaying = true;
+      }
+      
       selectNewTargetFruit();
       updateDisplay();
       fruitsContainer.innerHTML = '';
       
-      startScreen.classList.add('hidden');
+      nameScreen.classList.add('hidden');
       gameOverScreen.classList.add('hidden');
       gameScreen.classList.remove('hidden');
       
@@ -363,17 +483,20 @@
         newHighScore = true;
       }
       
+      playerNameDisplay.textContent = gameState.playerName;
       finalScoreDisplay.textContent = gameState.score;
       highScoreDisplay.textContent = gameState.highScore;
       
       gameScreen.classList.add('hidden');
       gameOverScreen.classList.remove('hidden');
+      updateLeaderboard();
       
       // Save game data to Canva Sheet
       if (window.dataSdk && newHighScore) {
         savingIndicator.classList.remove('hidden');
         
         const saveResult = await window.dataSdk.create({
+          player_name: gameState.playerName,
           session_id: session-${Date.now()},
           score: gameState.score.toString(),
           high_score: gameState.highScore.toString(),
@@ -390,8 +513,15 @@
     }
     
     // Event Listeners
-    startBtn.addEventListener('click', startGame);
-    restartBtn.addEventListener('click', startGame);
+    startBtn.addEventListener('click', goToNameScreen);
+    startGameBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', goToNameScreen);
+    
+    playerNameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        startGame();
+      }
+    });
     
     gameScreen.addEventListener('click', jump);
     gameScreen.addEventListener('touchstart', (e) => {
@@ -405,9 +535,9 @@
         if (gameState.isPlaying) {
           jump();
         } else if (!startScreen.classList.contains('hidden')) {
-          startGame();
+          goToNameScreen();
         } else if (!gameOverScreen.classList.contains('hidden')) {
-          startGame();
+          goToNameScreen();
         }
       }
     });
@@ -416,5 +546,5 @@
     initSDK();
     updateUI();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c92e1db16ff7329',t:'MTc3MDI5OTQ4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c93414142d4732b',t:'MTc3MDMwMzM5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
