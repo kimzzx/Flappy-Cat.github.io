@@ -1,420 +1,188 @@
 <!doctype html>
 <html lang="th" class="h-full">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flappy Cat 🐱🍎</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./_sdk/element_sdk.js"></script>
-  <script src="./_sdk/data_sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&amp;display=swap" rel="stylesheet">
-  <style>
-    body {
-      box-sizing: border-box;
-    }
-    * {
-      font-family: 'Kanit', sans-serif;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
-    @keyframes sparkle {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(1.2); }
-    }
-    .cat-float { animation: float 1.5s ease-in-out infinite; }
-    .fruit-sparkle { animation: sparkle 0.8s ease-in-out infinite; }
-    .game-bg-playing {
-      background-image: url('https://drive.google.com/thumbnail?id=190VZ-Nrg10S9mr46wLxKC4Dd-EUuqFcD&sz=s800');
-      background-size: cover;
-      background-position: center;
-    }
-  </style>
-  <style>@view-transition { navigation: auto; }</style>
- </head>
- <body class="h-full m-0 p-0 overflow-hidden">
-  <div id="app" class="w-full h-full relative"><!-- Start Screen -->
-   <div id="startScreen" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-pink-200 via-pink-100 to-rose-100">
-    <div class="text-center"><!-- Cute Cat Logo -->
-     <div class="text-8xl mb-4 cat-float">
-      🐱
-     </div>
-     <h1 id="gameTitle" class="text-5xl font-bold text-pink-600 mb-2 drop-shadow-lg">Flappy Cat</h1>
-     <p class="text-xl text-pink-500 mb-8">🍎🍊🍋 เก็บผลไม้ให้ได้มากที่สุด! 🍇🍓🍑</p><!-- Instructions -->
-     <div class="bg-white/70 backdrop-blur-sm rounded-3xl p-6 mx-4 mb-8 shadow-xl border-4 border-pink-300">
-      <h2 class="text-2xl font-bold text-pink-600 mb-4">🎮 วิธีเล่น</h2>
-      <div class="text-left text-pink-700 space-y-2">
-       <p>🐾 แตะหน้าจอเพื่อให้แมวบินขึ้น</p>
-       <p>✅ เก็บผลไม้ที่ตรงกับเป้าหมาย = ได้คะแนน</p>
-       <p>❌ เก็บผิดประเภท = เสียหัวใจ</p>
-       <p>💔 หัวใจหมด 3 ดวง = เกมโอเวอร์</p>
-      </div>
-     </div><!-- High Score Display -->
-     <div id="highScoreSection" class="bg-yellow-100/80 backdrop-blur-sm rounded-2xl px-6 py-3 mb-6 shadow-lg border-4 border-yellow-400 hidden">
-      <p class="text-yellow-700 font-bold text-lg">🏆 คะแนนสูงสุด: <span id="mainHighScore" class="text-3xl text-yellow-600">0</span></p>
-     </div><button id="startBtn" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-2xl transform hover:scale-110 transition-all duration-300 border-4 border-white"> 🎮 เริ่มเกม! </button>
-    </div><!-- Decorative Elements -->
-    <div class="absolute top-10 left-10 text-4xl fruit-sparkle">
-     🍎
-    </div>
-    <div class="absolute top-20 right-16 text-3xl fruit-sparkle" style="animation-delay: 0.2s;">
-     🍊
-    </div>
-    <div class="absolute bottom-32 left-8 text-3xl fruit-sparkle" style="animation-delay: 0.4s;">
-     🍋
-    </div>
-    <div class="absolute bottom-20 right-12 text-4xl fruit-sparkle" style="animation-delay: 0.6s;">
-     🍇
-    </div>
-   </div><!-- Game Screen -->
-   <div id="gameScreen" class="w-full h-full hidden relative game-bg-playing"><!-- Game Overlay for better visibility -->
-    <div class="absolute inset-0 bg-black/20"></div><!-- HUD -->
-    <div class="absolute top-4 left-4 right-4 flex justify-between items-start z-20"><!-- Score -->
-     <div class="bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border-4 border-pink-400"><span class="text-pink-600 font-bold text-xl">คะแนน: </span> <span id="score" class="text-3xl font-bold text-pink-700">0</span>
-     </div><!-- Target Fruit -->
-     <div class="bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border-4 border-yellow-400"><span class="text-yellow-600 font-bold text-lg">เก็บ: </span> <span id="targetFruit" class="text-4xl">🍎</span>
-     </div><!-- Lives -->
-     <div class="bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border-4 border-red-400"><span id="lives" class="text-3xl">❤️❤️❤️</span>
-     </div>
-    </div><!-- Game Canvas Area -->
-    <div id="gameArea" class="w-full h-full relative z-10"><!-- Cat -->
-     <div id="cat" class="absolute text-6xl transition-transform duration-100" style="left: 15%; top: 50%;">
-      🐱
-     </div><!-- Fruits Container -->
-     <div id="fruitsContainer" class="w-full h-full absolute top-0 left-0"></div>
-    </div>
-   </div><!-- Game Over Screen -->
-   <div id="gameOverScreen" class="w-full h-full hidden flex flex-col items-center justify-center bg-gradient-to-b from-purple-200 via-pink-200 to-rose-200">
-    <div class="text-center">
-     <div class="text-7xl mb-4">
-      😿
-     </div>
-     <h2 class="text-5xl font-bold text-pink-600 mb-4">เกมโอเวอร์!</h2>
-     <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 mx-4 mb-8 shadow-xl border-4 border-pink-300">
-      <p class="text-2xl text-pink-600 mb-2">คะแนนของคุณ</p>
-      <p id="finalScore" class="text-6xl font-bold text-pink-700 mb-4">0</p>
-      <p id="highScoreDisplay" class="text-xl text-purple-600">🏆 คะแนนสูงสุด: <span id="highScore">0</span></p>
-     </div><!-- Saving Indicator -->
-     <div id="savingIndicator" class="bg-blue-100/80 rounded-2xl px-6 py-3 mb-6 shadow-lg border-4 border-blue-400 hidden">
-      <p class="text-blue-700 font-bold text-lg">💾 กำลังบันทึก...</p>
-     </div><button id="restartBtn" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-2xl transform hover:scale-110 transition-all duration-300 border-4 border-white"> 🔄 เล่นอีกครั้ง </button>
-    </div>
-   </div>
-  </div>
-  <script>
-    // Config
-    const defaultConfig = {
-      game_title: 'Flappy Cat',
-      start_button_text: '🎮 เริ่มเกม!',
-      primary_color: '#ec4899',
-      secondary_color: '#f9a8d4',
-      text_color: '#be185d'
-    };
-    
-    let config = { ...defaultConfig };
-    
-    // Game State
-    let gameState = {
-      isPlaying: false,
-      score: 0,
-      lives: 3,
-      catY: 50,
-      catVelocity: 0,
-      fruits: [],
-      targetFruit: null,
-      highScore: 0,
-      gameLoop: null,
-      fruitSpawnTimer: null
-    };
-    
-    const FRUITS = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🥝', '🍒'];
-    const GRAVITY = 0.4;
-    const JUMP_FORCE = -8;
-    const FRUIT_SPEED = 3;
-    
-    // DOM Elements
-    const startScreen = document.getElementById('startScreen');
-    const gameScreen = document.getElementById('gameScreen');
-    const gameOverScreen = document.getElementById('gameOverScreen');
-    const startBtn = document.getElementById('startBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const cat = document.getElementById('cat');
-    const scoreDisplay = document.getElementById('score');
-    const livesDisplay = document.getElementById('lives');
-    const targetFruitDisplay = document.getElementById('targetFruit');
-    const finalScoreDisplay = document.getElementById('finalScore');
-    const highScoreDisplay = document.getElementById('highScore');
-    const mainHighScore = document.getElementById('mainHighScore');
-    const highScoreSection = document.getElementById('highScoreSection');
-    const fruitsContainer = document.getElementById('fruitsContainer');
-    const gameTitle = document.getElementById('gameTitle');
-    const savingIndicator = document.getElementById('savingIndicator');
-    
-    // Data Handler
-    const dataHandler = {
-      onDataChanged(data) {
-        // Load high score from database
-        if (data && data.length > 0) {
-          const highestRecord = data.reduce((max, record) => {
-            return parseInt(record.high_score) > parseInt(max.high_score) ? record : max;
-          });
-          gameState.highScore = parseInt(highestRecord.high_score);
-          mainHighScore.textContent = gameState.highScore;
-          highScoreSection.classList.remove('hidden');
-        }
-      }
-    };
-    
-    // Initialize SDK
-    async function initSDK() {
-      // Initialize Data SDK
-      if (window.dataSdk) {
-        const initResult = await window.dataSdk.init(dataHandler);
-        if (!initResult.isOk) {
-          console.error('Failed to initialize data SDK');
-        }
-      }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Cat 🐱🍎</title>
 
-      // Initialize Element SDK
-      if (window.elementSdk) {
-        window.elementSdk.init({
-          defaultConfig,
-          onConfigChange: async (newConfig) => {
-            config = { ...defaultConfig, ...newConfig };
-            updateUI();
-          },
-          mapToCapabilities: (cfg) => ({
-            recolorables: [],
-            borderables: [],
-            fontEditable: undefined,
-            fontSizeable: undefined
-          }),
-          mapToEditPanelValues: (cfg) => new Map([
-            ['game_title', cfg.game_title || defaultConfig.game_title],
-            ['start_button_text', cfg.start_button_text || defaultConfig.start_button_text]
-          ])
-        });
-      }
-    }
-    
-    function updateUI() {
-      gameTitle.textContent = config.game_title || defaultConfig.game_title;
-      startBtn.textContent = config.start_button_text || defaultConfig.start_button_text;
-    }
-    
-    // Game Functions
-    function startGame() {
-      gameState = {
-        ...gameState,
-        isPlaying: true,
-        score: 0,
-        lives: 3,
-        catY: 50,
-        catVelocity: 0,
-        fruits: []
-      };
-      
-      selectNewTargetFruit();
-      updateDisplay();
-      fruitsContainer.innerHTML = '';
-      
-      startScreen.classList.add('hidden');
-      gameOverScreen.classList.add('hidden');
-      gameScreen.classList.remove('hidden');
-      
-      gameState.gameLoop = requestAnimationFrame(gameLoop);
-      gameState.fruitSpawnTimer = setInterval(spawnFruit, 1200);
-    }
-    
-    function selectNewTargetFruit() {
-      gameState.targetFruit = FRUITS[Math.floor(Math.random() * FRUITS.length)];
-      targetFruitDisplay.textContent = gameState.targetFruit;
-    }
-    
-    function spawnFruit() {
-      if (!gameState.isPlaying) return;
-      
-      const fruit = {
-        emoji: FRUITS[Math.floor(Math.random() * FRUITS.length)],
-        x: 100,
-        y: 10 + Math.random() * 70,
-        id: Date.now() + Math.random()
-      };
-      
-      gameState.fruits.push(fruit);
-      
-      const fruitEl = document.createElement('div');
-      fruitEl.id = fruit-${fruit.id};
-      fruitEl.className = 'absolute text-5xl transition-none fruit-sparkle';
-      fruitEl.textContent = fruit.emoji;
-      fruitEl.style.left = ${fruit.x}%;
-      fruitEl.style.top = ${fruit.y}%;
-      fruitsContainer.appendChild(fruitEl);
-    }
-    
-    function jump() {
-      if (gameState.isPlaying) {
-        gameState.catVelocity = JUMP_FORCE;
-      }
-    }
-    
-    function gameLoop() {
-      if (!gameState.isPlaying) return;
-      
-      // Update cat position
-      gameState.catVelocity += GRAVITY;
-      gameState.catY += gameState.catVelocity * 0.5;
-      
-      // Boundary check
-      if (gameState.catY < 5) {
-        gameState.catY = 5;
-        gameState.catVelocity = 0;
-      }
-      if (gameState.catY > 85) {
-        gameState.catY = 85;
-        gameState.catVelocity = 0;
-      }
-      
-      // Update cat visual
-      cat.style.top = ${gameState.catY}%;
-      const rotation = Math.max(-30, Math.min(30, gameState.catVelocity * 3));
-      cat.style.transform = rotate(${rotation}deg);
-      
-      // Update fruits
-      gameState.fruits.forEach((fruit, index) => {
-        fruit.x -= FRUIT_SPEED * 0.3;
-        
-        const fruitEl = document.getElementById(fruit-${fruit.id});
-        if (fruitEl) {
-          fruitEl.style.left = ${fruit.x}%;
-          
-          // Collision detection
-          const catX = 15;
-          const dx = Math.abs(fruit.x - catX);
-          const dy = Math.abs(fruit.y - gameState.catY);
-          
-          if (dx < 8 && dy < 10) {
-            // Collected fruit
-            if (fruit.emoji === gameState.targetFruit) {
-              gameState.score += 10;
-              showFloatingText('+10', fruit.x, fruit.y, '#22c55e');
-              selectNewTargetFruit();
-            } else {
-              gameState.lives--;
-              showFloatingText('💔', fruit.x, fruit.y, '#ef4444');
-            }
-            
-            fruitEl.remove();
-            gameState.fruits.splice(index, 1);
-            updateDisplay();
-            
-            if (gameState.lives <= 0) {
-              endGame();
-              return;
-            }
-          }
-        }
-        
-        // Remove off-screen fruits
-        if (fruit.x < -10) {
-          const fruitEl = document.getElementById(fruit-${fruit.id});
-          if (fruitEl) fruitEl.remove();
-          gameState.fruits.splice(index, 1);
-        }
-      });
-      
-      gameState.gameLoop = requestAnimationFrame(gameLoop);
-    }
-    
-    function showFloatingText(text, x, y, color) {
-      const floatEl = document.createElement('div');
-      floatEl.className = 'absolute text-3xl font-bold z-30 pointer-events-none';
-      floatEl.textContent = text;
-      floatEl.style.left = ${x}%;
-      floatEl.style.top = ${y}%;
-      floatEl.style.color = color;
-      floatEl.style.textShadow = '2px 2px 4px rgba(0,0,0,0.3)';
-      floatEl.style.transition = 'all 0.5s ease-out';
-      fruitsContainer.appendChild(floatEl);
-      
-      setTimeout(() => {
-        floatEl.style.top = ${y - 15}%;
-        floatEl.style.opacity = '0';
-      }, 50);
-      
-      setTimeout(() => floatEl.remove(), 600);
-    }
-    
-    function updateDisplay() {
-      scoreDisplay.textContent = gameState.score;
-      livesDisplay.textContent = '❤️'.repeat(gameState.lives) + '🖤'.repeat(3 - gameState.lives);
-    }
-    
-    async function endGame() {
-      gameState.isPlaying = false;
-      
-      if (gameState.gameLoop) cancelAnimationFrame(gameState.gameLoop);
-      if (gameState.fruitSpawnTimer) clearInterval(gameState.fruitSpawnTimer);
-      
-      let newHighScore = false;
-      if (gameState.score > gameState.highScore) {
-        gameState.highScore = gameState.score;
-        newHighScore = true;
-      }
-      
-      finalScoreDisplay.textContent = gameState.score;
-      highScoreDisplay.textContent = gameState.highScore;
-      
-      gameScreen.classList.add('hidden');
-      gameOverScreen.classList.remove('hidden');
-      
-      // Save game data to Canva Sheet
-      if (window.dataSdk && newHighScore) {
-        savingIndicator.classList.remove('hidden');
-        
-        const saveResult = await window.dataSdk.create({
-          session_id: session-${Date.now()},
-          score: gameState.score.toString(),
-          high_score: gameState.highScore.toString(),
-          played_at: new Date().toISOString()
-        });
-        
-        savingIndicator.classList.add('hidden');
-        
-        if (saveResult.isOk) {
-          mainHighScore.textContent = gameState.highScore;
-          highScoreSection.classList.remove('hidden');
-        }
-      }
-    }
-    
-    // Event Listeners
-    startBtn.addEventListener('click', startGame);
-    restartBtn.addEventListener('click', startGame);
-    
-    gameScreen.addEventListener('click', jump);
-    gameScreen.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      jump();
-    });
-    
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' || e.code === 'ArrowUp') {
-        e.preventDefault();
-        if (gameState.isPlaying) {
-          jump();
-        } else if (!startScreen.classList.contains('hidden')) {
-          startGame();
-        } else if (!gameOverScreen.classList.contains('hidden')) {
-          startGame();
-        }
-      }
-    });
-    
-    // Initialize
-    initSDK();
-    updateUI();
-  </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c92e1db16ff7329',t:'MTc3MDI5OTQ4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{font-family:'Kanit',sans-serif}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes sparkle{0%,100%{opacity:1}50%{opacity:.7}}
+.cat-float{animation:float 1.5s ease-in-out infinite}
+.fruit-sparkle{animation:sparkle .8s ease-in-out infinite}
+.game-bg-playing{
+background:url('https://drive.google.com/thumbnail?id=190VZ-Nrg10S9mr46wLxKC4Dd-EUuqFcD&sz=s800') center/cover
+}
+</style>
+</head>
+
+<body class="h-full m-0 overflow-hidden">
+<div id="app" class="w-full h-full relative">
+
+<!-- START SCREEN -->
+<div id="startScreen" class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-pink-200 to-rose-100">
+<div class="text-center">
+<div class="text-8xl mb-4 cat-float">🐱</div>
+<h1 class="text-5xl font-bold text-pink-600 mb-2">Flappy Cat</h1>
+<p class="text-xl text-pink-500 mb-6">เก็บผลไม้ให้ตรงเป้า!</p>
+<button id="startBtn"
+class="bg-pink-500 hover:bg-pink-600 text-white text-2xl px-12 py-4 rounded-full shadow-xl">
+🎮 เริ่มเกม!
+</button>
+</div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="hidden w-full h-full relative game-bg-playing">
+<div class="absolute inset-0 bg-black/20"></div>
+
+<div class="absolute top-4 left-4 right-4 flex justify-between z-20">
+<div class="bg-white px-4 py-2 rounded-xl">คะแนน: <span id="score">0</span></div>
+<div class="bg-white px-4 py-2 rounded-xl">เก็บ: <span id="targetFruit">🍎</span></div>
+<div class="bg-white px-4 py-2 rounded-xl"><span id="lives">❤️❤️❤️</span></div>
+</div>
+
+<div id="gameArea" class="w-full h-full relative z-10">
+<div id="cat" class="absolute text-6xl" style="left:15%;top:50%">🐱</div>
+<div id="fruitsContainer" class="absolute inset-0"></div>
+</div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameOverScreen" class="hidden w-full h-full flex items-center justify-center bg-pink-200">
+<div class="text-center">
+<h2 class="text-5xl mb-4">เกมโอเวอร์</h2>
+<p class="text-2xl">คะแนน: <span id="finalScore">0</span></p>
+<button id="restartBtn"
+class="mt-6 bg-purple-500 hover:bg-purple-600 text-white px-10 py-4 rounded-full">
+เล่นใหม่
+</button>
+</div>
+</div>
+
+</div>
+
+<script>
+/* ---------- GAME LOGIC ---------- */
+
+const startScreen=document.getElementById('startScreen')
+const gameScreen=document.getElementById('gameScreen')
+const gameOverScreen=document.getElementById('gameOverScreen')
+const startBtn=document.getElementById('startBtn')
+const restartBtn=document.getElementById('restartBtn')
+const cat=document.getElementById('cat')
+const fruitsContainer=document.getElementById('fruitsContainer')
+
+const scoreEl=document.getElementById('score')
+const livesEl=document.getElementById('lives')
+const targetFruitEl=document.getElementById('targetFruit')
+const finalScoreEl=document.getElementById('finalScore')
+
+const FRUITS=['🍎','🍊','🍋','🍇','🍓']
+const GRAVITY=0.4
+const JUMP=-8
+const SPEED=0.4
+
+let state
+
+function resetGame(){
+state={
+playing:true,
+score:0,
+lives:3,
+y:50,
+vy:0,
+target:FRUITS[Math.floor(Math.random()*FRUITS.length)],
+fruits:[]
+}
+scoreEl.textContent=0
+livesEl.textContent='❤️❤️❤️'
+targetFruitEl.textContent=state.target
+fruitsContainer.innerHTML=''
+}
+
+function startGame(){
+resetGame()
+startScreen.classList.add('hidden')
+gameOverScreen.classList.add('hidden')
+gameScreen.classList.remove('hidden')
+requestAnimationFrame(loop)
+spawnTimer=setInterval(spawnFruit,1200)
+}
+
+function endGame(){
+state.playing=false
+clearInterval(spawnTimer)
+gameScreen.classList.add('hidden')
+gameOverScreen.classList.remove('hidden')
+finalScoreEl.textContent=state.score
+}
+
+function spawnFruit(){
+if(!state.playing)return
+const f={
+id:Date.now()+Math.random(),
+emoji:FRUITS[Math.floor(Math.random()*FRUITS.length)],
+x:100,
+y:10+Math.random()*70
+}
+state.fruits.push(f)
+
+const el=document.createElement('div')
+el.id=`fruit-${f.id}`
+el.className='absolute text-5xl fruit-sparkle'
+el.textContent=f.emoji
+el.style.left=`${f.x}%`
+el.style.top=`${f.y}%`
+fruitsContainer.appendChild(el)
+}
+
+function jump(){ if(state.playing) state.vy=JUMP }
+
+function loop(){
+if(!state.playing)return
+
+state.vy+=GRAVITY
+state.y+=state.vy*0.5
+state.y=Math.max(5,Math.min(85,state.y))
+cat.style.top=`${state.y}%`
+cat.style.transform=`rotate(${state.vy*3}deg)`
+
+state.fruits.forEach((f,i)=>{
+f.x-=SPEED*5
+const el=document.getElementById(`fruit-${f.id}`)
+if(el){
+el.style.left=`${f.x}%`
+const hit=Math.abs(f.x-15)<6 && Math.abs(f.y-state.y)<8
+if(hit){
+if(f.emoji===state.target){
+state.score+=10
+state.target=FRUITS[Math.floor(Math.random()*FRUITS.length)]
+targetFruitEl.textContent=state.target
+}else{
+state.lives--
+livesEl.textContent='❤️'.repeat(state.lives)
+}
+el.remove()
+state.fruits.splice(i,1)
+scoreEl.textContent=state.score
+if(state.lives<=0) endGame()
+}
+if(f.x<-10){ el?.remove(); state.fruits.splice(i,1) }
+}
+})
+requestAnimationFrame(loop)
+}
+
+/* EVENTS */
+startBtn.onclick=startGame
+restartBtn.onclick=startGame
+gameScreen.onclick=jump
+document.onkeydown=e=>{ if(e.code==='Space') jump() }
+</script>
+</body>
 </html>
